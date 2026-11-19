@@ -1,0 +1,10 @@
+{
+    "name": "wa-tor",
+    "version": "1.0.0",
+    "description": "Browser-based Wa-Tor toroidal ecosystem simulation (A. K. Dewdney, 1984)",
+    "type": "module",
+    "scripts": {
+        "test": "node --test",
+        "start": "python3 -m http.server 8000"
+    }
+}

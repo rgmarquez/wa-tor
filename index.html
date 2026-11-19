@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wa-Tor — Toroidal Predator-Prey Simulation</title>
+    <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="title-block">
+                <h1>Wa-Tor</h1>
+                <p class="subtitle">Toroidal ocean ecosystem &middot; A. K. Dewdney (1984)</p>
+            </div>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-label">Chronon</span>
+                    <span id="stat-chronon" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label fish-dot">Fish</span>
+                    <span id="stat-fish" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label shark-dot">Sharks</span>
+                    <span id="stat-sharks" class="stat-value">0</span>
+                </div>
+                <span id="stat-status" class="stat-badge status-active">Active</span>
+            </div>
+        </header>
+
+        <main class="main-grid">
+            <section class="ocean-panel">
+                <div class="panel-toolbar">
+                    <div class="transport-controls">
+                        <button id="play-pause-btn" type="button" class="btn btn-primary" aria-pressed="false">Play</button>
+                        <button id="step-btn" type="button" class="btn">Step</button>
+                        <button id="reset-btn" type="button" class="btn">Reset</button>
+                    </div>
+
+                    <div class="speed-control">
+                        <label for="speed-slider">Speed</label>
+                        <input id="speed-slider" type="range" min="1" max="60" value="12" />
+                        <span id="speed-value" class="mono">12 / s</span>
+                    </div>
+
+                    <div class="view-switcher" role="group" aria-label="Ocean view mode">
+                        <button type="button" class="seg-btn is-active" data-view-mode="cells">Cells</button>
+                        <button type="button" class="seg-btn" data-view-mode="symbols">Dots &amp; Circles</button>
+                        <button type="button" class="seg-btn" data-view-mode="ascii">ASCII</button>
+                    </div>
+                </div>
+
+                <div class="ocean-stage">
+                    <canvas id="ocean-canvas" aria-label="Wa-Tor toroidal ocean grid"></canvas>
+                </div>
+
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h2>Population vs. Chronons</h2>
+                            <div class="chart-legend">
+                                <span class="legend-item fish-dot">Fish</span>
+                                <span class="legend-item shark-dot">Sharks</span>
+                            </div>
+                        </div>
+                        <div class="chart-stage">
+                            <canvas id="population-canvas" aria-label="Population over time chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h2>Phase Space (Sharks vs. Fish)</h2>
+                            <div class="chart-legend">
+                                <span class="legend-item phase-dot">Trajectory</span>
+                            </div>
+                        </div>
+                        <div class="chart-stage">
+                            <canvas id="phase-canvas" aria-label="Phase space plot of sharks versus fish"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="controls-panel">
+                <div class="control-section">
+                    <label class="section-label" for="preset-select">Preset</label>
+                    <select id="preset-select" class="select-input"></select>
+                    <p id="preset-description" class="helper-text"></p>
+                </div>
+
+                <form id="params-form" class="control-section params-form">
+                    <div class="section-label">Parameters</div>
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label for="param-width">Width</label>
+                            <input id="param-width" type="number" min="4" max="200" required />
+                        </div>
+                        <div class="field">
+                            <label for="param-height">Height</label>
+                            <input id="param-height" type="number" min="4" max="200" required />
+                        </div>
+                    </div>
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label for="param-nfish">Initial Fish (nfish)</label>
+                            <input id="param-nfish" type="number" min="0" required />
+                        </div>
+                        <div class="field">
+                            <label for="param-nsharks">Initial Sharks (nsharks)</label>
+                            <input id="param-nsharks" type="number" min="0" required />
+                        </div>
+                    </div>
+
+                    <div class="field-row">
+                        <div class="field">
+                            <label for="param-fbreed">Fish Breed (fbreed)</label>
+                            <input id="param-fbreed" type="number" min="1" required />
+                        </div>
+                        <div class="field">
+                            <label for="param-sbreed">Shark Breed (sbreed)</label>
+                            <input id="param-sbreed" type="number" min="1" required />
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="param-starve">Shark Starve (starve)</label>
+                        <input id="param-starve" type="number" min="1" required />
+                    </div>
+
+                    <div class="field">
+                        <label for="param-seed">RNG Seed (optional)</label>
+                        <div class="seed-row">
+                            <input id="param-seed" type="text" placeholder="Random if blank" />
+                            <button id="random-seed-btn" type="button" class="btn btn-small" title="Generate random seed">Roll</button>
+                        </div>
+                    </div>
+
+                    <p id="form-error" class="form-error" role="alert"></p>
+
+                    <button type="submit" class="btn btn-primary btn-full">Apply &amp; Reset</button>
+                </form>
+
+                <div class="control-section rules-summary">
+                    <div class="section-label">Rules Summary</div>
+                    <ul>
+                        <li><strong>Torus:</strong> edges wrap N/S and E/W.</li>
+                        <li><strong>Fish:</strong> swim to an adjacent empty cell; breed at <code>fbreed</code>.</li>
+                        <li><strong>Sharks:</strong> eat an adjacent fish (resets hunger) or swim to empty water; starve after <code>starve</code> chronons; breed at <code>sbreed</code>.</li>
+                        <li><strong>Shortcut:</strong> press <kbd>Space</kbd> to play or pause.</li>
+                    </ul>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html>
